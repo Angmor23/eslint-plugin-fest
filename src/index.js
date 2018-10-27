@@ -3,6 +3,7 @@
 const path = require("path")
 const extract = require("./extract")
 const utils = require("./utils")
+
 const splatSet = utils.splatSet
 const getSettings = require("./settings").getSettings
 
@@ -79,8 +80,8 @@ function iterateESLintModules(fn) {
       module ? [module.filename].concat(parentPaths(module.parent)) : []
 
     throw new Error(
-      `eslint-plugin-html error: It seems that eslint is not loaded.
-If you think this is a bug, please file a report at https://github.com/BenoitZugmeyer/eslint-plugin-html/issues
+      `eslint-plugin-fest error: It seems that eslint is not loaded.
+If you think this is a bug, please file a report at https://github.com/Angmor23/eslint-plugin-fest/issues
 
 In the report, please include *all* those informations:
 
@@ -134,9 +135,12 @@ function patch(Linter) {
       messages = []
 
       const pushMessages = (localMessages, code) => {
-        messages.push.apply(
-          messages,
-          remapMessages(localMessages, textOrSourceCode.startsWith(BOM), code)
+        messages.push(
+          ...remapMessages(
+            localMessages,
+            textOrSourceCode.startsWith(BOM),
+            code
+          )
         )
       }
 
@@ -176,9 +180,7 @@ function patch(Linter) {
         )
       }
 
-      messages.sort((ma, mb) => {
-        return ma.line - mb.line || ma.column - mb.column
-      })
+      messages.sort((ma, mb) => ma.line - mb.line || ma.column - mb.column)
     } else {
       messages = localVerify(textOrSourceCode)
     }
@@ -199,22 +201,20 @@ function verifyWithSharedScopes(
   config.rules = { [GET_SCOPE_RULE_NAME]: "error" }
 
   for (const code of currentInfos.code) {
-    this.rules.define(GET_SCOPE_RULE_NAME, context => {
-      return {
-        Program() {
-          firstPassValues.push({
-            code,
-            sourceCode: context.getSourceCode(),
-            exportedGlobals: context
-              .getScope()
-              .through.map(node => node.identifier.name),
-            declaredGlobals: context
-              .getScope()
-              .variables.map(variable => variable.name),
-          })
-        },
-      }
-    })
+    this.rules.define(GET_SCOPE_RULE_NAME, context => ({
+      Program() {
+        firstPassValues.push({
+          code,
+          sourceCode: context.getSourceCode(),
+          exportedGlobals: context
+            .getScope()
+            .through.map(node => node.identifier.name),
+          declaredGlobals: context
+            .getScope()
+            .variables.map(variable => variable.name),
+        })
+      },
+    }))
 
     pushMessages(localVerify(String(code)), code)
   }
@@ -226,28 +226,26 @@ function verifyWithSharedScopes(
 
   // Second pass: declare variables for each script scope, then run eslint.
   for (let i = 0; i < firstPassValues.length; i += 1) {
-    this.rules.define(DECLARE_VARIABLES_RULE_NAME, context => {
-      return {
-        Program() {
-          const exportedGlobals = splatSet(
-            firstPassValues
-              .slice(i + 1)
-              .map(nextValues => nextValues.exportedGlobals)
-          )
-          for (const name of exportedGlobals) context.markVariableAsUsed(name)
+    this.rules.define(DECLARE_VARIABLES_RULE_NAME, context => ({
+      Program() {
+        const exportedGlobals = splatSet(
+          firstPassValues
+            .slice(i + 1)
+            .map(nextValues => nextValues.exportedGlobals)
+        )
+        for (const name of exportedGlobals) context.markVariableAsUsed(name)
 
-          const declaredGlobals = splatSet(
-            firstPassValues
-              .slice(0, i)
-              .map(previousValues => previousValues.declaredGlobals)
-          )
-          const scope = context.getScope()
-          scope.through = scope.through.filter(variable => {
-            return !declaredGlobals.has(variable.identifier.name)
-          })
-        },
-      }
-    })
+        const declaredGlobals = splatSet(
+          firstPassValues
+            .slice(0, i)
+            .map(previousValues => previousValues.declaredGlobals)
+        )
+        const scope = context.getScope()
+        scope.through = scope.through.filter(
+          variable => !declaredGlobals.has(variable.identifier.name)
+        )
+      },
+    }))
 
     const values = firstPassValues[i]
     pushMessages(localVerify(values.sourceCode), values.code)
@@ -263,9 +261,6 @@ function remapMessages(messages, hasBOM, code) {
   for (const message of messages) {
     const location = code.originalLocation({
       line: message.line,
-      // eslint-plugin-eslint-comments is raising message with column=0 to bypass ESLint ignore
-      // comments. Since messages are already ignored at this time, just reset the column to a valid
-      // number. See https://github.com/BenoitZugmeyer/eslint-plugin-html/issues/70
       column: message.column || 1,
     })
 

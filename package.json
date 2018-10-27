@@ -1,19 +1,19 @@
 {
-  "name": "eslint-plugin-html",
-  "version": "4.0.6",
-  "description": "A ESLint plugin to lint and fix inline scripts contained in HTML files.",
+  "name": "eslint-plugin-fest",
+  "version": "0.0.1-beta.0",
+  "description": "A ESLint plugin to lint and fix inline scripts and params contained in Fest files.",
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "https://github.com/BenoitZugmeyer/eslint-plugin-html"
+    "url": "https://github.com/Angmor23/eslint-plugin-fest"
   },
-  "homepage": "https://github.com/BenoitZugmeyer/eslint-plugin-html",
-  "bugs": "https://github.com/BenoitZugmeyer/eslint-plugin-html/issues",
+  "homepage": "https://github.com/Angmor23/eslint-plugin-fest",
+  "bugs": "https://github.com/Angmor23/eslint-plugin-fest/issues",
   "keywords": [
     "eslint-plugin",
     "eslintplugin",
     "eslint",
-    "html"
+    "fest"
   ],
   "main": "src/index.js",
   "dependencies": {
@@ -21,13 +21,12 @@
   },
   "devDependencies": {
     "eslint": "^4.7.0",
-    "eslint-config-benoitz-prettier": "^1.0.1",
-    "jest": "^21.1.0",
+    "eslint-config-prettier": "^3.1.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-prettier": "^3.0.0",
     "prettier": "^1.7.4"
   },
   "scripts": {
-    "validate": "npm run lint && npm run test",
-    "test": "jest",
-    "lint": "eslint ."
+    "lint": "eslint --fix ."
   }
 }

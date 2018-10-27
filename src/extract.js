@@ -11,7 +11,6 @@ function iterateScripts(code, options, onChunk) {
   let index = 0
   let inScript = false
   let cdata = []
-
   const chunks = []
   function pushChunk(type, end) {
     chunks.push({ type, start: index, end, cdata })
@@ -23,7 +22,11 @@ function iterateScripts(code, options, onChunk) {
     {
       onopentag(name, attrs) {
         // Test if current tag is a valid <script> tag.
-        if (name !== "script") {
+        if (
+          name !== "fest:script" &&
+          name !== "fest:params" &&
+          name !== "fest:value"
+        ) {
           return
         }
 
@@ -36,7 +39,7 @@ function iterateScripts(code, options, onChunk) {
         }
 
         inScript = true
-        pushChunk("html", parser.endIndex + 1)
+        pushChunk("fest", parser.endIndex + 1)
       },
 
       oncdatastart() {
@@ -53,7 +56,12 @@ function iterateScripts(code, options, onChunk) {
       },
 
       onclosetag(name) {
-        if (name !== "script" || !inScript) {
+        if (
+          (name !== "fest:script" &&
+            name !== "fest:params" &&
+            name !== "fest:value") ||
+          !inScript
+        ) {
           return
         }
 
@@ -83,13 +91,13 @@ function iterateScripts(code, options, onChunk) {
 
   parser.parseComplete(code)
 
-  pushChunk("html", parser.endIndex + 1)
+  pushChunk("fest", parser.endIndex + 1)
 
   {
     const emitChunk = () => {
       const cdata = []
       for (let i = startChunkIndex; i < index; i += 1) {
-        cdata.push.apply(cdata, chunks[i].cdata)
+        cdata.push(...chunks[i].cdata)
       }
       onChunk({
         type: chunks[startChunkIndex].type,
@@ -184,10 +192,18 @@ function extract(code, indentDescriptor, xmlMode, isJavaScriptMIMEType) {
   const codeParts = []
   let lineNumber = 1
   let previousHTML = ""
+  const inFestConditionsTags = code
+    .match(/<fest:if test="(.*?)">/gi)
+    .map(tag => tag.split('"')[1])
+
+  code = `${code}
+  <fest:script>
+  ${inFestConditionsTags.join(";\n")};
+  </fest:script>`
 
   iterateScripts(code, { xmlMode, isJavaScriptMIMEType }, chunk => {
     const slice = code.slice(chunk.start, chunk.end)
-    if (chunk.type === "html") {
+    if (chunk.type === "fest") {
       const match = slice.match(/\r\n|\n|\r/g)
       if (match) lineNumber += match.length
       previousHTML = slice

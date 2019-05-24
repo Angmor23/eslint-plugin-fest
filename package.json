@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-fest",
-  "version": "0.0.1-beta.1",
+  "version": "0.1.0",
   "description": "A ESLint plugin to lint and fix inline scripts and params contained in Fest files.",
   "license": "ISC",
   "repository": {

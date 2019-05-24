@@ -1,9 +1,0 @@
-language: node_js
-node_js:
-  - 4
-  - 6
-  - 8
-script:
-  - if node --version | grep -q v8; then npm run lint; fi
-  - npm install eslint@4.7 && npm test
-  - if ! node --version | grep -q v4; then npm install eslint@latest && npm test; fi

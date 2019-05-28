@@ -144,7 +144,11 @@ function patch(Linter) {
 				);
 			};
 
-			const currentInfos = extract(textOrSourceCode, pluginSettings.indent);
+			const currentInfos = extract(
+				textOrSourceCode,
+				pluginSettings.indent,
+				config
+			);
 
 			if (pluginSettings.reportBadIndent) {
 				currentInfos.badIndentationLines.forEach(line => {

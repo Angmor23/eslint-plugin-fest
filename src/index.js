@@ -191,7 +191,7 @@ function verifyWithSharedScopes(
 	config.rules = { [GET_SCOPE_RULE_NAME]: "error" };
 
 	for (const code of currentInfos.code) {
-		this.rules.define(GET_SCOPE_RULE_NAME, context => ({
+		this.defineRule(GET_SCOPE_RULE_NAME, context => ({
 			Program() {
 				firstPassValues.push({
 					code,
@@ -216,7 +216,7 @@ function verifyWithSharedScopes(
 
 	// Second pass: declare variables for each script scope, then run eslint.
 	for (let i = 0; i < firstPassValues.length; i += 1) {
-		this.rules.define(DECLARE_VARIABLES_RULE_NAME, context => ({
+		this.defineRule(DECLARE_VARIABLES_RULE_NAME, context => ({
 			Program() {
 				const exportedGlobals = splatSet(
 					firstPassValues

@@ -1,11 +1,10 @@
 const htmlparser = require("htmlparser2");
 const TransformableString = require("./TransformableString");
+const Fest = require("./fest");
 
-function iterateScripts(code, options, onChunk) {
+function iterateScripts(code, onChunk) {
 	if (!code) return;
 
-	const xmlMode = options.xmlMode;
-	const isJavaScriptMIMEType = options.isJavaScriptMIMEType || (() => true);
 	let index = 0;
 	let inScript = false;
 	let cdata = [];
@@ -19,16 +18,12 @@ function iterateScripts(code, options, onChunk) {
 	const parser = new htmlparser.Parser(
 		{
 			onopentag(name, attrs) {
-				// Test if current tag is a valid <script> tag.
 				if (
 					name !== "fest:script" &&
 					name !== "fest:params" &&
-					name !== "fest:value"
+					name !== "fest:value" &&
+					name !== "f:l"
 				) {
-					return;
-				}
-
-				if (attrs.type && !isJavaScriptMIMEType(attrs.type)) {
 					return;
 				}
 
@@ -57,7 +52,8 @@ function iterateScripts(code, options, onChunk) {
 				if (
 					(name !== "fest:script" &&
 						name !== "fest:params" &&
-						name !== "fest:value") ||
+						name !== "fest:value" &&
+						name !== "f:l") ||
 					!inScript
 				) {
 					return;
@@ -66,8 +62,6 @@ function iterateScripts(code, options, onChunk) {
 				inScript = false;
 
 				if (parser.startIndex < chunks[chunks.length - 1].end) {
-					// The parser didn't move its index after the previous chunk emited. It occurs on
-					// self-closing tags (xml mode). Just ignore this script.
 					return;
 				}
 
@@ -83,7 +77,7 @@ function iterateScripts(code, options, onChunk) {
 			}
 		},
 		{
-			xmlMode: xmlMode === true
+			xmlMode: true
 		}
 	);
 
@@ -185,41 +179,15 @@ function* dedent(indent, slice) {
 	}
 }
 
-function extract(code, indentDescriptor, xmlMode, isJavaScriptMIMEType) {
+function extract(code, indentDescriptor, config) {
 	const badIndentationLines = [];
 	const codeParts = [];
 	let lineNumber = 1;
 	let previousHTML = "";
-	const inFestForTags = code.match(/<fest:for (.*?) value="(.*?)">/gi) || [];
-	const inFestIfTags = (code.match(/<fest:if test="(.*?)">/gi) || []).map(
-		ifTag => ifTag.split('"')[1]
-	);
 
-	if (inFestForTags.length) {
-		inFestForTags.forEach(forTag => {
-			const valueAttrVar = forTag.split(`value="`)[1].split(`"`)[0];
-			const iterateAttrVar = forTag.split(`iterate="`)[1].split(`"`)[0];
-			const indexAttrVar = forTag.split(`index="`)[1].split(`"`)[0];
+	code = Fest(code, config);
 
-			const ForJsExp =
-				valueAttrVar &&
-				iterateAttrVar &&
-				`var ${valueAttrVar} = ${iterateAttrVar}[0]; var ${indexAttrVar} = 0; ${indexAttrVar};`;
-			code = code.replace(
-				forTag,
-				`${forTag}<fest:script>${ForJsExp}</fest:script>`
-			);
-		});
-	}
-
-	if (inFestIfTags.length) {
-		code = `${code}
-	  <fest:script>
-	  ${inFestIfTags.join(";\n")};
-	  </fest:script>`;
-	}
-
-	iterateScripts(code, { xmlMode, isJavaScriptMIMEType }, chunk => {
+	iterateScripts(code, chunk => {
 		const slice = code.slice(chunk.start, chunk.end);
 		if (chunk.type === "fest") {
 			const match = slice.match(/\r\n|\n|\r/g);

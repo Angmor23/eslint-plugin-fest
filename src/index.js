@@ -144,12 +144,7 @@ function patch(Linter) {
 				);
 			};
 
-			const currentInfos = extract(
-				textOrSourceCode,
-				pluginSettings.indent,
-				isXML,
-				pluginSettings.isJavaScriptMIMEType
-			);
+			const currentInfos = extract(textOrSourceCode, pluginSettings.indent);
 
 			if (pluginSettings.reportBadIndent) {
 				currentInfos.badIndentationLines.forEach(line => {
@@ -163,22 +158,13 @@ function patch(Linter) {
 				});
 			}
 
-			if (
-				config.parserOptions &&
-				config.parserOptions.sourceType === "module"
-			) {
-				for (const code of currentInfos.code) {
-					pushMessages(localVerify(String(code)), code);
-				}
-			} else {
-				verifyWithSharedScopes.call(
-					this,
-					localVerify,
-					config,
-					currentInfos,
-					pushMessages
-				);
-			}
+			verifyWithSharedScopes.call(
+				this,
+				localVerify,
+				config,
+				currentInfos,
+				pushMessages
+			);
 
 			messages.sort((ma, mb) => ma.line - mb.line || ma.column - mb.column);
 		} else {

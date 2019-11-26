@@ -17,14 +17,14 @@
   ],
   "main": "src/index.js",
   "dependencies": {
-    "htmlparser2": "^3.8.2"
+    "htmlparser2": "^4.0.0"
   },
   "devDependencies": {
-    "eslint": "^4.7.0",
-    "eslint-config-prettier": "^3.1.0",
-    "eslint-plugin-import": "^2.14.0",
-    "eslint-plugin-prettier": "^3.0.0",
-    "prettier": "^1.7.4"
+    "eslint": "^6.7.1",
+    "eslint-config-prettier": "^6.7.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-prettier": "^3.1.1",
+    "prettier": "^1.19.1"
   },
   "scripts": {
     "lint": "eslint --fix ."

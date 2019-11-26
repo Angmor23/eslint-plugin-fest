@@ -1,7 +1,7 @@
 module.exports = (code, config) => {
 	const quotesDouble = config.rules.quotes.includes("double");
 	const inFestForTags = code.match(/<fest:(for|each)(.*?)>/gi) || [];
-	const inFestIfTags = code.match(/<fest:(if|when)(.*?)>/gi) || [];
+	const inFestIfTags = code.match(/<fest:(if|when) test="(.*?)">/gi) || [];
 	const inFestVarTags = code.match(/<fest:var(.*?)>/gi) || [];
 	const inFestGetTags = code.match(/<fest:(get|element)(.*?)>/gi) || [];
 	const inFestIncludeTags = code.match(/<fest:include(.*?)>/gi) || [];
